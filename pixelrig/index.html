@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PixelRig Studio</title>
+<meta name="description" content="Rig, animate and paint 2D / pixel characters, then export sprites and skeletal rigs for Godot, Unity and Roblox.">
+<meta name="theme-color" content="#110c20">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+  :root {
+    --bg: #0d0918; --panel: #161027; --panel2: #1d1533; --line: #2c2247; --text: #e9e4f5; --mute: #9a90b5;
+    --accent: #f5c04a; --accent2: #7c5cff; --danger: #ff5a6e; --ok: #4fd18b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 "Leelawadee UI", "Noto Sans Thai", Tahoma, system-ui, sans-serif; }
+  header { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: #110c20; position: sticky; top: 0; z-index: 5; flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0 8px 0 0; letter-spacing: .5px; }
+  header h1 b { color: var(--accent); }
+  .tabs { display: flex; gap: 4px; background: var(--panel); padding: 3px; border-radius: 10px; border: 1px solid var(--line); }
+  .tabs button { border: 0; background: transparent; color: var(--mute); padding: 6px 12px; border-radius: 7px; cursor: pointer; font: inherit; }
+  .tabs button.on { background: var(--accent2); color: #fff; }
+  .hctl { display: flex; align-items: center; gap: 8px; color: var(--mute); font-size: 13px; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; padding: 16px; }
+  @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
+  .stageWrap { position: relative; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #000; }
+  #stage { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; image-rendering: pixelated; cursor: default; touch-action: none; }
+  #stage.edit { cursor: crosshair; }
+  #hud { position: absolute; left: 10px; top: 8px; font-size: 12px; color: #cfc6ea; text-shadow: 0 1px 2px #000; pointer-events: none; }
+  #chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); cursor: default; user-select: none; }
+  .chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .chip:hover, .chip.on { border-color: var(--accent); }
+  #stats { color: var(--mute); font-size: 13px; }
+  #stats b { color: var(--text); }
+  .hint { color: #6f6690; font-size: 12px; margin-top: 4px; }
+  aside { display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 90px); overflow: auto; padding-right: 4px; }
+  @media (max-width: 1000px) { aside { max-height: none; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .card h3 { margin: 0 0 10px; font-size: 14px; color: var(--accent); font-weight: 600; }
+  .card h4 { margin: 10px 0 6px; font-size: 12px; color: var(--mute); font-weight: 500; }
+  .row { display: grid; grid-template-columns: 110px 1fr; gap: 8px; align-items: center; margin: 6px 0; }
+  .row > label { color: var(--mute); font-size: 13px; }
+  .row .val { color: var(--text); font-size: 12px; min-width: 38px; text-align: right; }
+  .rv { display: grid; grid-template-columns: 1fr 44px; gap: 6px; align-items: center; }
+  select, input[type=text], input[type=number], textarea { width: 100%; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font: inherit; font-size: 13px; }
+  textarea { font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; resize: vertical; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=color] { width: 100%; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel2); padding: 2px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 6px; }
+  .btn { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 11px; cursor: pointer; font: inherit; font-size: 13px; }
+  .btn:hover { border-color: var(--accent); }
+  .btn.on { border-color: var(--accent); color: var(--accent); }
+  .btn.pri { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+  .btn.warn { border-color: #5a2a3a; color: var(--danger); }
+  .btn kbd { font-size: 10px; color: var(--mute); margin-left: 4px; }
+  .colors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .colors label { font-size: 11px; color: var(--mute); display: block; margin-bottom: 2px; }
+  .note { font-size: 12px; color: var(--mute); margin: 6px 0; }
+  .ok { color: var(--ok); }
+  #timeline { margin-top: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  #timeline .bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  #tlBar select { width: auto; }
+  #tl { width: 100%; height: 78px; display: block; background: #110c20; border-radius: 8px; cursor: pointer; }
+  .hidden { display: none !important; }
+  #paintArea { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
+  .paintTop { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 2px 4px 8px; font-size: 13px; color: var(--mute); }
+  .paintMain { display: flex; gap: 8px; }
+  .paintTools { display: flex; flex-direction: column; gap: 4px; }
+  .ptool { width: 38px; height: 38px; font-size: 18px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); color: var(--text); cursor: pointer; }
+  .ptool:hover { border-color: var(--accent); }
+  .ptool.on { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+  #paintCanvas { flex: 1; min-width: 0; width: 100%; height: auto; aspect-ratio: 960 / 620; border-radius: 8px; cursor: crosshair; touch-action: none; image-rendering: pixelated; }
+  .paintStatus { font-size: 12px; color: var(--mute); padding: 6px 4px 0; }
+  .popt { display: inline-flex; gap: 4px; align-items: center; font-size: 13px; color: var(--mute); }
+  .paintTimeline { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px; }
+  .tlRow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; font-size: 13px; color: var(--mute); }
+  .tlRow input[type=number] { width: 70px; }
+  .tlRow select { width: auto; }
+  .tlRow input[type=text] { width: 110px; }
+  .thumbs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .thumb { flex: none; border: 2px solid var(--line); border-radius: 8px; padding: 3px; background: var(--panel2); cursor: pointer; text-align: center; font-size: 11px; color: var(--mute); }
+  .thumb.on { border-color: var(--accent); color: var(--text); }
+  .thumb canvas { display: block; height: 44px; image-rendering: pixelated; background: repeating-conic-gradient(#3a3352 0% 25%, #2b2540 0% 50%) 50% / 8px 8px; border-radius: 4px; margin: 0 auto 2px; }
+  .thumb .tagbar { height: 3px; border-radius: 2px; margin-top: 2px; }
+  .tag { display: inline-flex; gap: 4px; align-items: center; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); cursor: pointer; }
+  .tag.on { border-color: var(--accent); color: var(--text); }
+  .palette { display: flex; flex-direction: column; gap: 3px; max-height: 260px; overflow: auto; }
+  .ramp { display: flex; gap: 3px; }
+  .swatch { width: 24px; height: 24px; border-radius: 5px; border: 1px solid #00000066; cursor: pointer; padding: 0; color: var(--mute); background: var(--panel2); }
+  .swatch.del { width: 18px; font-size: 12px; }
+  .layers { display: flex; flex-direction: column; gap: 3px; }
+  .layer { display: flex; gap: 6px; align-items: center; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--line); cursor: pointer; font-size: 13px; }
+  .layer.on { border-color: var(--accent); background: var(--panel2); }
+  .lbtn { background: none; border: 0; color: var(--text); cursor: pointer; width: 22px; }
+  details.card > summary { list-style: none; }
+  details.card > summary::before { content: '▸ '; color: var(--mute); }
+  details.card[open] > summary::before { content: '▾ '; }
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; font-size: 13px; max-height: 220px; overflow: auto; padding: 4px; background: var(--panel2); border-radius: 8px; border: 1px solid var(--line); }
+  .checks label { display: flex; gap: 6px; align-items: center; color: var(--text); }
+  #sheetPreview { max-width: 100%; image-rendering: pixelated; background: repeating-conic-gradient(#2a2240 0% 25%, #1d1630 0% 50%) 50% / 16px 16px; border-radius: 8px; border: 1px solid var(--line); margin-top: 8px; }
+  .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: #2a1f48; border: 1px solid var(--accent2); padding: 8px 16px; border-radius: 10px; z-index: 20; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Pixel<b>Rig</b> Studio</h1>
+  <div class="tabs" id="modeTabs">
+    <button data-mode="play" class="on">ทดสอบท่า</button>
+    <button data-mode="edit">แก้ท่า / Rig</button>
+    <button data-mode="paint">วาดพิกเซล</button>
+    <button data-mode="config">ตั้งค่า / สร้างตัวละคร</button>
+    <button data-mode="export">ส่งออก (Godot · Unity · Roblox)</button>
+  </div>
+  <div class="hctl">
+    <span>ภาพ</span>
+    <div class="tabs" id="renderTabs"><button data-r="pixel" class="on">Pixel</button><button data-r="hd">2D HD</button></div>
+    <span>ขนาดพิกเซล</span>
+    <select id="pxSize" style="width:64px"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select>
+    <span>ซูม</span><input id="zoom" type="range" min="1" max="3.5" step="0.1" value="2" style="width:90px">
+    <label><input id="showBones" type="checkbox"> โครงกระดูก</label>
+  </div>
+</header>
+<main>
+  <section>
+    <div id="paintArea" class="hidden">
+      <div class="paintTop" id="paintOpts"></div>
+      <div class="paintMain"><div class="paintTools" id="paintTools"></div><canvas id="paintCanvas" width="960" height="620"></canvas></div>
+      <div class="paintStatus" id="paintStatus"></div>
+      <div class="paintTimeline" id="paintTimeline"></div>
+    </div>
+    <div class="stageWrap"><canvas id="stage" width="960" height="540"></canvas><div id="hud"></div></div>
+    <div id="chips"></div>
+    <div id="stats"></div>
+    <div class="hint" id="hint">ปุ่มลัด: ← → เดิน · Shift ค้างไว้วิ่ง · ↑ ↓ เดินลึก (2.5D) · Space กระโดด · J โจมตีต่อเนื่อง · K / L สกิล · ชี้ชื่อส่วนด้านบนเพื่อไฮไลต์</div>
+    <div id="timeline" class="hidden">
+      <div class="bar" id="tlBar"></div>
+      <canvas id="tl" width="1200" height="78"></canvas>
+    </div>
+  </section>
+  <aside id="panel"></aside>
+</main>
+<script src="src/core.js"></script>
+<script src="src/data/equipment.js"></script>
+<script src="src/data/weapons.js"></script>
+<script src="src/rig.js"></script>
+<script src="src/motion.js"></script>
+<script src="src/fx.js"></script>
+<script src="src/data/moves_weapons.js"></script>
+<script src="src/data/moves_common.js"></script>
+<script src="src/data/my_moves.js"></script>
+<script src="src/scene.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/config.js"></script>
+<script src="src/editor.js"></script>
+<script src="src/paint.js"></script>
+<script src="src/paint_ui.js"></script>
+<script src="src/paint_timeline.js"></script>
+<script src="src/paint_store.js"></script>
+<script src="src/zip.js"></script>
+<script src="src/rigexport.js"></script>
+<script src="src/rigexport_engines.js"></script>
+<script src="src/export.js"></script>
+<script src="src/app.js"></script>
+<script>
+  // installable + offline when served over http(s); opening index.html directly still works without it
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch((e) => console.warn('service worker:', e)));
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# Keep line endings consistent (LF) on every OS; images are binary.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.gif binary
+*.zip binary

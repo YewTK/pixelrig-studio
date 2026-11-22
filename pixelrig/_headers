@@ -1,0 +1,9 @@
+# Cloudflare Pages / Netlify response headers.
+# The service worker must never be cached, or updates would not reach users.
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

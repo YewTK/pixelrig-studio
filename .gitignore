@@ -1,0 +1,16 @@
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.vscode/
+.idea/
+
+# local tool settings
+.claude/settings.local.json
+
+# exports you download while testing (keep them out of the repo)
+*_pixelrig.zip
+*_rig.zip
+*_frames.zip
+node_modules/

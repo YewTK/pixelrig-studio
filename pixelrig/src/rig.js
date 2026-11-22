@@ -197,11 +197,12 @@ PR.Rig = class {
     const sp = PR.clamp(vel[0], -120, 120), vy = PR.clamp(vel[1], -150, 150);
     const flutter = (k) => Math.sin(t * 7 * C.flutterSpeed + k) * (2 + Math.abs(sp) * 0.06) * C.flutter;
     const cs = C.capeSwing, hs = C.hairSwing;
+    const hairRest = (PR.HAIR[this.cfg.hair] || {}).rest ?? C.hairRest;   // long loose hair hangs closer to vertical than a ponytail
     const want = {
       cape1: C.capeRest + (sp * 0.32 - vy * 0.08) * cs + flutter(0) - torsoA,
       cape2: 4 + sp * 0.12 * cs + flutter(1.2) * 1.4,
       cape3: 4 + sp * 0.08 * cs + flutter(2.4) * 1.8,
-      hair1: C.hairRest + (sp * 0.35 - vy * 0.1) * hs + flutter(0.5) - headA,
+      hair1: hairRest + (sp * 0.35 - vy * 0.1) * hs + flutter(0.5) - headA,
       hair2: 6 + sp * 0.1 * hs + flutter(1.7),
     };
     const k = 1 - Math.exp(-dt * C.stiffness);

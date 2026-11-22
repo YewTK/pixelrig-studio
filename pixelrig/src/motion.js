@@ -108,7 +108,7 @@ PR.Character = class {
     this.combo = 0; this.comboTimer = 0;
     this.trail = []; this.pose = {}; this.lastFoot = 0;
     this.afterimages = 0;
-    this.prm = Object.assign({}, PR.MOTION);
+    this.prm = Object.assign({}, PR.MOTION, cfg.motion || {});   // a character may carry its own walk/run style
     this.autoMove = 0;       // 0 idle, 1 walk, 2 run (preview buttons)
     this.stats = { contact: [true, true], bob: 0 };
   }

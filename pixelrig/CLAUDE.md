@@ -80,6 +80,14 @@ no ES modules, no fetch of local files, no CDN.
 - Quality bar: anticipation opposite to the blow, a 0.05–0.1 s strike with `outExpo`/`outCubic`, hit event + small hit-stop on contact,
   follow-through, recover to the stance (`ST.<set>` in moves_weapons.js) by the last key, feet step with the blow, elbows slightly bent.
 
+## Character packs (how to add a whole new character)
+`src/data/pack_thunder_sage.js` is the template: one file that adds hair (`PR.HAIR`, optional `rest` angle), outfit items
+(pushed into `PR.EQUIP[slot]` by id), a weapon, an element, a move set (`PR.SETS`) with its clips, and a ready-made character in
+`PR.CHARACTER_PRESETS[id] = { name, cfg }` (cfg may include `body` proportions and `motion` overrides for its own walk/run style).
+Load it with a `<script>` after `my_moves.js` and before `config.js`, and add it to `SHELL` in `sw.js` (bump `CACHE`).
+Presets appear in the play tab ("ตัวละครสำเร็จรูป") and the settings library. Base designs on the user's references as
+original characters; do not copy a specific copyrighted character.
+
 ## Common tasks
 - **New move**: add a clip to `src/data/my_moves.js` (`group: 'mine'`, `set: '<blade|heavy|pole|magic|bow|fist>'` so it shows for that weapon).
   To make it a weapon's combo/skill instead, add it to `moves_weapons.js` and list its id in `PR.SETS[set].attacks/skills`.

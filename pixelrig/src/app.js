@@ -19,7 +19,7 @@
   app.scene = new PR.Scene(cfg);
   const ch = () => app.scene.ch;
   app.saveCfg = () => U.store.set('char', app.cfg);
-  app.applyCfg = () => { ch().rig.setConfig(app.cfg); app.saveCfg(); };
+  app.applyCfg = () => { ch().rig.setConfig(app.cfg); Object.assign(ch().prm, PR.MOTION, app.cfg.motion || {}); app.saveCfg(); };
   app.saveClips = () => U.store.set('clips', PR.USER_CLIPS);
 
   // ---------- header controls ----------
@@ -99,7 +99,9 @@
     fillColors();
     const equipRows = PR.EQUIP_SLOTS.map(([slot, label]) =>
       U.row(label, U.select(PR.EQUIP[slot].map((i) => [i.id, i.name]), c.equip[slot], (v) => { c.equip[slot] = v; app.applyCfg(); fillColors(); })));
+    const presets = Object.entries(PR.CHARACTER_PRESETS || {});
     panel.append(U.card('ตัวละคร (สวมใส่ทีละชิ้นได้)', [
+      presets.length ? U.row('ตัวละครสำเร็จรูป', U.select([['', '— เลือก —'], ...presets.map(([id, p]) => [id, p.name])], '', (v) => { if (v) { PR.config.loadPreset(v); app.buildPlayPanel(); } })) : null,
       U.row('ทรงผม', U.select(Object.entries(PR.HAIR).map(([k, h]) => [k, h.name]), c.hair, (v) => { c.hair = v; app.applyCfg(); })),
       ...equipRows,
       U.el('h4', { text: 'สี' }), colorBox,

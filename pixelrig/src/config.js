@@ -60,6 +60,17 @@
       U.store.set('charName', name);
       PR.app.applyCfg();
     },
+    // ready-made characters shipped in data packs (PR.CHARACTER_PRESETS)
+    loadPreset(id) {
+      const p = (PR.CHARACTER_PRESETS || {})[id];
+      if (!p || !PR.app) return;
+      const cfg = PR.app.cfg;
+      for (const k of Object.keys(cfg)) delete cfg[k];
+      Object.assign(cfg, PR.clone(PR.DEFAULT_CHAR), PR.clone(p.cfg));
+      cfg.equip = Object.assign({}, PR.DEFAULT_CHAR.equip, p.cfg.equip || {});
+      U.store.set('charName', '');
+      PR.app.applyCfg();
+    },
     // ---- project file ----
     async exportProject() {
       const drawings = PR.paintStore ? await PR.paintStore.exportAll() : null;
@@ -100,7 +111,11 @@
       // ---------- character creator ----------
       const chars = C.chars(), current = U.store.get('charName', '');
       const nameIn = U.el('input', { type: 'text', value: current || 'ตัวละคร 1', placeholder: 'ชื่อตัวละคร' });
-      const libSel = U.select([['', '— เลือกตัวละครที่บันทึกไว้ —'], ...Object.keys(chars).map((n) => [n, n])], current, (v) => { if (v) { C.loadChar(v); rebuild(); } });
+      const presets = Object.entries(PR.CHARACTER_PRESETS || {});
+      const libSel = U.select([['', '— เลือกตัวละคร —'],
+        ...(presets.length ? [{ group: 'ตัวละครสำเร็จรูป', items: presets.map(([id, p]) => ['preset:' + id, p.name]) }] : []),
+        ...(Object.keys(chars).length ? [{ group: 'ที่บันทึกไว้', items: Object.keys(chars).map((n) => [n, n]) }] : [])],
+      current, (v) => { if (!v) return; if (v.startsWith('preset:')) C.loadPreset(v.slice(7)); else C.loadChar(v); rebuild(); });
       const fileIn = U.el('input', { type: 'file', accept: '.json,application/json', style: 'display:none', onchange: async (e) => {
         const f = e.target.files[0]; if (!f) return;
         try { await C.importProject(JSON.parse(await f.text())); U.toast('นำเข้าโปรเจกต์แล้ว'); rebuild(); } catch (err) { U.toast('นำเข้าไม่ได้: ' + err.message, 3000); }
